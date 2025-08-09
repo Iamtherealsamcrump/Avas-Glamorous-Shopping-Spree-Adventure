@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Ava’s Shopping Spree</title>
+<style>
+  :root{
+    --pink:#ff5ec4;
+    --purple:#8a5cff;
+    --gold:#ffd166;
+    --mint:#3fe3c9;
+    --ink:#1b1236;
+    --bg1:#2a0a5a;
+    --bg2:#ff9df2;
+    --bg3:#a782ff;
+    --glass: rgba(255,255,255,.16);
+    --glass-2: rgba(255,255,255,.28);
+  }
+
+  /* Sparkly gradient sky */
+  body{
+    margin:0;
+    background: radial-gradient(1200px 800px at 20% 10%, var(--bg2) 0%, transparent 60%),
+                radial-gradient(900px 700px at 80% 0%, var(--bg3) 0%, transparent 60%),
+                linear-gradient(180deg, #3b0a80 0%, #1a0638 100%);
+    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+    color:#fff;
+    min-height:100svh;
+    overflow:hidden;
+  }
+
+  /* Floating glitter */
+  .sparkle{
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    background:
+      radial-gradient(2px 2px at 10% 20%, rgba(255,255,255,.9) 50%, transparent 55%),
+      radial-gradient(1.5px 1.5px at 40% 30%, rgba(255,255,255,.8) 50%, transparent 55%),
+      radial-gradient(2px 2px at 70% 15%, rgba(255,255,255,.9) 50%, transparent 55%),
+      radial-gradient(1.2px 1.2px at 90% 35%, rgba(255,255,255,.8) 50%, transparent 55%),
+      radial-gradient(1.6px 1.6px at 25% 70%, rgba(255,255,255,.85) 50%, transparent 55%),
+      radial-gradient(1.4px 1.4px at 60% 80%, rgba(255,255,255,.9) 50%, transparent 55%);
+    animation: twinkle 6s linear infinite;
+    opacity:.75;
+  }
+  @keyframes twinkle{
+    0%{transform:translateY(0)}
+    50%{transform:translateY(-6px)}
+    100%{transform:translateY(0)}
+  }
+
+  /* App frame */
+  .app{
+    max-width:1100px;
+    margin:0 auto;
+    padding:16px;
+  }
+
+  .title{
+    display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+    margin:8px 0 6px;
+  }
+  .logo{
+    width:54px; height:54px; border-radius:12px;
+    background: conic-gradient(from 0deg, var(--pink), var(--purple), var(--gold), var(--pink));
+    box-shadow: 0 0 18px rgba(255, 131, 243, .65), inset 0 0 10px rgba(255,255,255,.35);
+    display:grid; place-items:center;
+  }
+  .logo span{font-size:28px; filter:drop-shadow(0 2px 2px rgba(0,0,0,.25));}
+  h1{ font-size: clamp(22px, 4vw, 34px); margin:0; letter-spacing:.6px }
+  .goal{ opacity:.9; margin:0 0 10px; font-size:14px }
+
+  /* Top HUD */
+  .hud{
+    display:grid;
+    grid-template-columns: 1fr auto auto auto;
+    gap:10px;
+    align-items:center;
+    backdrop-filter: blur(8px);
+    background: linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,.07));
+    border:1px solid rgba(255,255,255,.18);
+    border-radius:14px;
+    padding:10px 12px;
+    box-shadow: 0 8px 30px rgba(0,0,0,.26), inset 0 0 14px rgba(255,255,255,.08);
+  }
+  .pill{
+    background: linear-gradient(180deg, var(--glass-2), var(--glass));
+    padding:8px 12px; border-radius:999px; border:1px solid rgba(255,255,255,.26);
+    display:flex; align-items:center; gap:8px; white-space:nowrap;
+    box-shadow: inset 0 0 10px rgba(255,255,255,.06);
+  }
+  .btn{
+    cursor:pointer; user-select:none;
+    background:linear-gradient(180deg, #ffd9fb, #ffc5f6);
+    color:#4a2c7f; border:none; border-radius:10px; padding:8px 12px;
+    font-weight:700;
+    box-shadow: 0 4px 12px rgba(255, 120, 230, .45), inset 0 -3px 0 rgba(0,0,0,.06);
+    transition:transform .05s ease;
+  }
+  .btn:active{ transform: translateY(1px) }
+
+  .coins{ color:#1f0; font-weight:800 }
+  .store-link{ text-decoration:underline; cursor:pointer }
+
+  /* Main playfield */
+  .playfield{
+    position:relative;
+    height:540px;
+    margin-top:12px;
+    border-radius:18px;
+    background:
+      radial-gradient(1000px 300px at 50% 0%, rgba(255,255,255,.06) 0%, transparent 60%),
+      linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
+    border:1px solid rgba(255,255,255,.18);
+    overflow:hidden;
+    box-shadow: inset 0 30px 80px rgba(255,255,255,.06), 0 20px 50px rgba(0,0,0,.35);
+  }
+
+  /* Rotating dry cleaner racks */
+  .rack{
+    position:absolute; left:0; right:0;
+    height:140px; display:flex; align-items:center;
+    overflow:visible;
+  }
+  .rack.top{ top:30px; }
+  .rack.mid{ top:200px; transform: scale(1.02); }
+  .rack.bot{ bottom:24px; transform: scale(1.04); }
+
+  .rail{
+    position:absolute; left:16px; right:16px; height:6px; border-radius:6px;
+    background:linear-gradient(90deg, rgba(255,255,255,.8), rgba(255,255,255,.35));
+    box-shadow: 0 2px 10px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.6);
+  }
+
+  .hooks{
+    position:absolute; left:-20%; right:-20%; height:0; display:flex; gap:60px; align-items:flex-start;
+    animation: loopLeft 16s linear infinite;
+  }
+  .hooks.rev{ animation: loopRight 18s linear infinite; }
+  .hooks.slow{ animation-duration: 22s; }
+
+  @keyframes loopLeft{
+    0%{ transform: translateX(0) }
+    100%{ transform: translateX(-50%) }
+  }
+  @keyframes loopRight{
+    0%{ transform: translateX(-50%) }
+    100%{ transform: translateX(0) }
+  }
+
+  .hook{
+    position:relative; width:60px; height:0;
+  }
+  .hook:before{
+    content:"";
+    position:absolute; top:-10px; left:26px; width:8px; height:16px; border-radius:0 0 8px 8px;
+    background:linear-gradient(180deg, #eee, #bbb);
+    box-shadow: 0 2px 2px rgba(0,0,0,.2);
+  }
+
+  /* Clothing card */
+  .item{
+    position:absolute; top:10px; left:4px;
+    width:52px; height:80px; border-radius:10px;
+    background:linear-gradient(180deg, rgba(255,255,255,.9), rgba(255,255,255,.75));
+    box-shadow: 0 8px 18px rgba(0,0,0,.28);
+    display:grid; grid-template-rows: 1fr auto; place-items:center;
+    color:#2b1b56;
+    cursor:pointer;
+    transition: transform .08s ease, box-shadow .2s ease, filter .2s ease;
+  }
+  .item:hover{ transform: translateY(-2px) scale(1.02); filter:brightness(1.05) }
+  .face{ width:42px; height:42px; }
+  .label{ font-size:10px; padding:2px 0 6px; opacity:.85 }
+
+  /* Target outfit card */
+  .target{
+    position:absolute; top:12px; right:12px; width:210px;
+    background:linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.08));
+    border:1px solid rgba(255,255,255,.28); border-radius:14px; padding:10px;
+    backdrop-filter: blur(6px);
+  }
+  .target h3{ margin:0 0 6px; font-size:14px }
+  .slots{ display:grid; grid-template-columns: repeat(3,1fr); gap:6px }
+  .slot{
+    height:58px; border-radius:10px; display:grid; place-items:center;
+    background:linear-gradient(180deg, rgba(255,255,255,.35), rgba(255,255,255,.18));
+    border:1px dashed rgba(255,255,255,.55);
+  }
+  .slot.filled{ border-style:solid; box-shadow: inset 0 0 0 2px rgba(255,255,255,.35); }
+
+  /* Mannequin and avatars */
+  .stage{
+    position:absolute; left:12px; bottom:12px; width:260px; height:220px;
+    background:linear-gradient(180deg, rgba(255,255,255,.15), rgba(255,255,255,.06));
+    border:1px solid rgba(255,255,255,.25); border-radius:16px; padding:6px;
+  }
+  .avatars{ display:flex; gap:8px; padding:6px 6px 2px; }
+  .avatar{
+    width:48px; height:48px; border-radius:12px; cursor:pointer;
+    border:2px solid transparent;
+    background:linear-gradient(180deg, rgba(255,255,255,.85), rgba(255,255,255,.7));
+    display:grid; place-items:center;
+    transition: transform .06s ease, border-color .2s ease;
+  }
+  .avatar:active{ transform: translateY(1px) }
+  .avatar.active{ border-color: var(--gold) }
+
+  .mannequin{
+    position:absolute; inset:60px 8px 8px 8px; border-radius:12px;
+    display:grid; place-items:center;
+    background:
+      radial-gradient(140px 60px at 50% 100%, rgba(0,0,0,.35), transparent 60%),
+      radial-gradient(220px 80px at 50% 95%, rgba(255,255,255,.12), transparent 70%);
+  }
+
+  /* Floating score pips */
+  .pip{
+    position:absolute; right:240px; top:10px;
+    font-weight:800; font-size:18px; color:#00ff9a;
+    text-shadow: 0 2px 6px rgba(0,0,0,.6);
+    opacity:0; transform: translateY(0);
+    animation: pip 700ms ease forwards;
+    pointer-events:none;
+  }
+  @keyframes pip{
+    0%{opacity:0; transform: translateY(0)}
+    20%{opacity:1}
+    100%{opacity:0; transform: translateY(-18px)}
+  }
+
+  /* Tabs modal */
+  .modal{
+    position:fixed; inset:0; display:none; place-items:center; background:rgba(7,3,22,.55);
+  }
+  .modal.open{ display:grid }
+  .panel{
+    width:min(900px, 92vw); max-height:86svh; overflow:auto;
+    background:linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.08));
+    border:1px solid rgba(255,255,255,.28); border-radius:16px; padding:14px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.5);
+  }
+  .panel h2{ margin:4px 0 12px }
+  .shop{
+    display:grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap:12px;
+  }
+  .card{
+    background:linear-gradient(180deg, rgba(255,255,255,.85), rgba(255,255,255,.7));
+    border-radius:12px; color:#402a72; padding:10px;
+    display:grid; gap:8px; align-content:start;
+    box-shadow: 0 8px 18px rgba(0,0,0,.25);
+  }
+  .card .buy{ background:linear-gradient(180deg, #d0ffe8, #baffdc); }
+
+  /* Leaderboard table */
+  table{
+    width:100%; border-collapse:separate; border-spacing:0 8px;
+  }
+  th, td{ text-align:left; padding:8px 10px; }
+  tr{
+    background:linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,255,255,.08));
+    border:1px solid rgba(255,255,255,.28);
+  }
+  tr td:first-child, tr th:first-child{ border-top-left-radius:10px; border-bottom-left-radius:10px }
+  tr td:last-child, tr th:last-child{ border-top-right-radius:10px; border-bottom-right-radius:10px }
+
+  /* Footer help */
+  .help{
+    margin-top:10px; font-size:12px; opacity:.9;
+  }
+
+  /* Responsive */
+  @media (max-width:720px){
+    .target{ position:static; width:auto; margin:10px }
+    .stage{ position:static; width:auto; height:240px; margin:10px }
+    .playfield{ height:680px; }
+    .pip{ right:20px }
+  }
+</style>
+</head>
+<body>
+<div class="sparkle"></div>
+<div class="app" id="app">
+  <div class="title">
+    <div class="logo"><span>✨</span></div>
+    <div>
+      <h1>Ava’s Shopping Spree</h1>
+      <p class="goal">Goal: help Ava pick the right outfit for grade school, shopping, and more.</p>
+    </div>
+  </div>
+
+  <div class="hud">
+    <div class="pill" aria-live="polite">⏱️ Time: <strong id="time">2:00</strong></div>
+    <div class="pill">⭐ Score: <strong id="score">0</strong></div>
+    <div class="pill">🪙 Coins: <strong id="coins">0</strong></div>
+    <div class="pill">
+      <button class="btn" id="startBtn">Start Game</button>
+      <button class="btn" id="shopBtn">Verse Apparell</button>
+      <button class="btn" id="boardBtn">Leaderboard</button>
+    </div>
+  </div>
+
+  <div class="playfield" id="playfield" aria-label="Playfield">
+    <!-- Target outfit -->
+    <div class="target" id="targetCard" aria-live="polite">
+      <h3>Tonight’s vibe</h3>
+      <div id="themeLine" style="font-size:12px; margin-bottom:6px; opacity:.9">Theme: —</div>
+      <div class="slots">
+        <div class="slot" data-slot="top" title="Top"></div>
+        <div class="slot" data-slot="bottom" title="Bottom"></div>
+        <div class="slot" data-slot="shoes" title="Shoes"></div>
+      </div>
+    </div>
+
+    <!-- Character stage -->
+    <div class="stage">
+      <div class="avatars" id="avatars"></div>
+      <div class="mannequin" id="mannequin"></div>
+    </div>
+
+    <!-- Racks -->
+    <div class="rack top">
+      <div class="rail"></div>
+      <div class="hooks" id="laneTop"></div>
+    </div>
+    <div class="rack mid">
+      <div class="rail"></div>
+      <div class="hooks rev" id="laneMid"></div>
+    </div>
+    <div class="rack bot">
+      <div class="rail"></div>
+      <div class="hooks slow" id="laneBot"></div>
+    </div>
+
+    <!-- Floating pip container -->
+    <div id="pipBox"></div>
+  </div>
+
+  <p class="help">
+    Click the moving clothes to build the outfit shown in “Tonight’s vibe.” Complete the set before items roll off the racks.  
+    Perfect set gives +4. Good piece gives +2. Close color gives +1. The pip shows first, then the board updates.  
+    Games last two minutes. Earn coins and shop at Verse Apparell to unlock more styles. Local only. No internet needed.
+  </p>
+</div>
+
+<!-- Modals -->
+<div class="modal" id="shopModal" aria-hidden="true">
+  <div class="panel">
+    <h2>🛍️ Verse Apparell</h2>
+    <p style="margin-top:0">Spend coins to add fresh pieces to the racks. Unlocks expand the pool for future runs.</p>
+    <div class="shop" id="shopGrid"></div>
+    <div style="display:flex; gap:8px; margin-top:12px">
+      <button class="btn" id="closeShop">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="boardModal" aria-hidden="true">
+  <div class="panel">
+    <h2>🏆 Leaderboard</h2>
+    <table id="boardTable" aria-label="Top Scores">
+      <thead><tr><th>Rank</th><th>Name</th><th>Score</th><th>Date</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <div style="display:flex; gap:8px; margin-top:12px; align-items:center">
+      <input id="nameInput" placeholder="Your name" style="padding:8px 10px; border-radius:10px; border:none; width:220px" />
+      <button class="btn" id="saveScoreBtn">Save Last Score</button>
+      <button class="btn" id="clearBoardBtn">Clear Leaderboard</button>
+      <button class="btn" id="closeBoard">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ========= Data ========= */
+const COLORS = [
+  {key:'pink', name:'Pink', fill:'#ff5ec4'},
+  {key:'purple', name:'Purple', fill:'#8a5cff'},
+  {key:'mint', name:'Mint', fill:'#3fe3c9'},
+  {key:'gold', name:'Gold', fill:'#ffd166'},
+  {key:'sky', name:'Sky', fill:'#79c7ff'},
+  {key:'rose', name:'Rose', fill:'#ff8aa7'},
+];
+
+const BASE_POOL = [
+  // type, colorKey, style
+  {type:'top', color:'pink',  style:'hoodie'},
+  {type:'top', color:'purple',style:'tee'},
+  {type:'top', color:'mint',  style:'blouse'},
+  {type:'bottom', color:'gold', style:'skirt'},
+  {type:'bottom', color:'purple', style:'jeans'},
+  {type:'bottom', color:'sky', style:'shorts'},
+  {type:'shoes', color:'pink', style:'sneakers'},
+  {type:'shoes', color:'gold', style:'boots'},
+  {type:'shoes', color:'mint', style:'flats'},
+];
+
+const SHOP_ITEMS = [
+  {id:'top_glitter_rose', price:20, add:{type:'top', color:'rose', style:'glitter-tee'}, title:'Glitter Tee • Rose'},
+  {id:'top_cardigan_sky', price:25, add:{type:'top', color:'sky', style:'cardigan'}, title:'Cozy Cardigan • Sky'},
+  {id:'bottom_tutu_pink', price:30, add:{type:'bottom', color:'pink', style:'tutu'}, title:'Tutu Skirt • Pink'},
+  {id:'bottom_jogger_mint', price:30, add:{type:'bottom', color:'mint', style:'jogger'}, title:'Joggers • Mint'},
+  {id:'shoes_hi_purple', price:28, add:{type:'shoes', color:'purple', style:'hi-tops'}, title:'Hi-tops • Purple'},
+  {id:'shoes_mary_rose', price:22, add:{type:'shoes', color:'rose', style:'mary-janes'}, title:'Mary Janes • Rose'},
+];
+
+const THEMES = [
+  {name:'School Day', bias:['pink','purple','sky'], needs:['top','bottom','shoes']},
+  {name:'Mall Trip', bias:['mint','gold','rose'], needs:['top','bottom','shoes']},
+  {name:'Movie Night', bias:['purple','gold','pink'], needs:['top','bottom','shoes']},
+];
+
+/* ========= State ========= */
+let coins = +localStorage.getItem('ava_coins') || 0;
+let locker = JSON.parse(localStorage.getItem('ava_unlocks') || '[]'); // ids bought
+let pool = JSON.parse(localStorage.getItem('ava_pool') || 'null') || BASE_POOL.slice();
+let leaderboard = JSON.parse(localStorage.getItem('ava_leader') || '[]'); // {name,score,date}
+
+let score = 0;
+let lastScore = 0;
+let timeLeft = 120; // seconds
+let running = false;
+let countdownId = null;
+
+let currentTheme = null;
+let needSet = null; // e.g. {top:{color}, bottom:{color}, shoes:{color}}
+let filled = {top:null, bottom:null, shoes:null};
+
+/* ========= Helpers ========= */
+function saveProgress(){
+  localStorage.setItem('ava_coins', coins);
+  localStorage.setItem('ava_unlocks', JSON.stringify(locker));
+  localStorage.setItem('ava_pool', JSON.stringify(pool));
+  localStorage.setItem('ava_leader', JSON.stringify(leaderboard));
+}
+function $(q, el=document){ return el.querySelector(q) }
+function el(tag, props={}, ...kids){
+  const d = document.createElement(tag);
+  Object.assign(d, props);
+  for(const k of kids){ if(typeof k === 'string') d.appendChild(document.createTextNode(k)); else if(k) d.appendChild(k) }
+  return d;
+}
+function colorInfo(key){ return COLORS.find(c=>c.key===key) }
+function rand(arr){ return arr[Math.floor(Math.random()*arr.length)] }
+function fmtTime(s){ const m = Math.floor(s/60), r = s%60; return `${m}:${String(r).padStart(2,'0')}` }
+
+/* ========= Avatars (anime-ish, diverse) ========= */
+const AVATARS = [
+  {id:'ava_brown', skin:'#8d5524', hair:'#2c1a10', eyes:'#2a2444'},
+  {id:'ava_light', skin:'#f1c27d', hair:'#3b2a1a', eyes:'#2a2444'},
+  {id:'ava_dark', skin:'#6a3d1a', hair:'#000', eyes:'#c2d3ff'},
+  {id:'ava_asian', skin:'#e0b089', hair:'#111', eyes:'#2a2444'},
+];
+let activeAvatar = AVATARS[0].id;
+
+function avatarSVG({skin, hair, eyes}, size=44){
+  return `<svg width="${size}" height="${size}" viewBox="0 0 64 64" aria-hidden="true">
+    <defs>
+      <radialGradient id="g" cx="50%" cy="0%" r="100%">
+        <stop offset="0%" stop-color="white" stop-opacity="0.6"/>
+        <stop offset="100%" stop-color="white" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <circle cx="32" cy="32" r="30" fill="url(#g)"/>
+    <ellipse cx="32" cy="36" rx="16" ry="18" fill="${skin}" />
+    <path d="M16,28 Q32,10 48,28 L48,40 Q32,48 16,40Z" fill="${hair}"/>
+    <circle cx="25" cy="35" r="3" fill="${eyes}"/>
+    <circle cx="39" cy="35" r="3" fill="${eyes}"/>
+    <path d="M24,42 Q32,46 40,42" stroke="#b56576" stroke-width="2" fill="none"/>
+    <rect x="24" y="50" width="16" height="6" rx="3" fill="#ffedf8"/>
+  </svg>`;
+}
+function mannequinSVG(){
+  return `<svg width="220" height="160" viewBox="0 0 220 160" aria-label="Mannequin">
+    <g>
+      <ellipse cx="110" cy="140" rx="60" ry="10" fill="rgba(0,0,0,.35)"/>
+      <rect x="104" y="40" width="12" height="70" rx="6" fill="#eee"/>
+      <circle cx="110" cy="30" r="12" fill="#eee"/>
+    </g>
+  </svg>`;
+}
+
+/* ========= Clothing SVGs ========= */
+function clothSVG(type, colorKey, style){
+  const c = colorInfo(colorKey)?.fill || '#fff';
+  const stroke = 'rgba(0,0,0,.2)';
+  if(type==='top'){
+    return `<svg class="face" viewBox="0 0 64 64">
+      <path d="M14,22 Q20,16 26,14 L32,16 L38,14 Q44,16 50,22 L46,28 L46,48 L18,48 L18,28Z"
+        fill="${c}" stroke="${stroke}" />
+      <circle cx="32" cy="22" r="4" fill="rgba(255,255,255,.6)"/>
+    </svg>`;
+  }
+  if(type==='bottom'){
+    return `<svg class="face" viewBox="0 0 64 64">
+      <path d="M18,20 L46,20 L50,48 L38,48 L34,34 L30,34 L26,48 L14,48Z"
+        fill="${c}" stroke="${stroke}" />
+    </svg>`;
+  }
+  // shoes
+  return `<svg class="face" viewBox="0 0 64 64">
+    <path d="M12,40 Q20,36 28,36 L44,42 Q48,44 52,44 L52,50 L12,50Z"
+      fill="${c}" stroke="${stroke}" />
+  </svg>`;
+}
+
+/* ========= UI populate ========= */
+function refreshHUD(){
+  $('#time').textContent = fmtTime(timeLeft);
+  $('#score').textContent = String(score);
+  $('#coins').textContent = String(coins);
+}
+function buildAvatars(){
+  const box = $('#avatars');
+  box.innerHTML = '';
+  AVATARS.forEach(a=>{
+    const node = el('button', {className:'avatar' + (a.id===activeAvatar?' active':''), title:'Select avatar', innerHTML: avatarSVG(a,40)});
+    node.addEventListener('click', ()=>{
+      activeAvatar = a.id;
+      [...box.children].forEach(c=>c.classList.remove('active'));
+      node.classList.add('active');
+    });
+    box.appendChild(node);
+  });
+  $('#mannequin').innerHTML = mannequinSVG();
+}
+function buildShop(){
+  const grid = $('#shopGrid'); grid.innerHTML='';
+  SHOP_ITEMS.forEach(it=>{
+    const owned = locker.includes(it.id);
+    const card = el('div', {className:'card'});
+    const preview = clothSVG(it.add.type, it.add.color, it.add.style);
+    const meta = el('div', {innerHTML:`<div style="font-weight:800">${it.title}</div>
+      <div style="font-size:12px; opacity:.8">${it.add.type.toUpperCase()} • ${colorInfo(it.add.color).name}</div>`});
+    const btn = el('button', {className:'btn buy', disabled: owned, textContent: owned ? 'Owned' : `Buy • ${it.price}🪙`});
+    btn.addEventListener('click', ()=>{
+      if(owned) return;
+      if(coins < it.price){
+        alert('Not enough coins.');
+        return;
+      }
+      coins -= it.price;
+      locker.push(it.id);
+      pool.push(it.add);
+      saveProgress();
+      refreshHUD();
+      buildShop();
+    });
+    card.append(el('div',{innerHTML:preview, style:'display:grid; place-items:center'}));
+    card.append(meta, btn);
+    grid.append(card);
+  });
+}
+
+/* ========= Target generation ========= */
+function newTheme(){
+  currentTheme = rand(THEMES);
+  const wantColor = ()=> rand(currentTheme.bias);
+  needSet = {
+    top:{color: wantColor()},
+    bottom:{color: wantColor()},
+    shoes:{color: wantColor()},
+  };
+  filled = {top:null, bottom:null, shoes:null};
+  $('#themeLine').textContent = `Theme: ${currentTheme.name} • Colors: ${Object.values(needSet).map(v=>colorInfo(v.color).name).join(', ')}`;
+  // clear slots
+  document.querySelectorAll('.slot').forEach(s=>{ s.classList.remove('filled'); s.innerHTML=''; });
+}
+
+/* ========= Racks and item flow ========= */
+const lanes = [
+  {el:null, id:'laneTop'},
+  {el:null, id:'laneMid'},
+  {el:null, id:'laneBot'},
+];
+
+function spawnLaneItems(){
+  lanes.forEach((lane, idx)=>{
+    lane.el.innerHTML = '';
+    const count = 16;
+    for(let i=0;i<count;i++){
+      const hook = el('div',{className:'hook'});
+      const piece = rand(pool);
+      const card = el('div',{
+        className:'item',
+        dataset:{type:piece.type, color:piece.color, style:piece.style}
+      });
+      card.innerHTML = clothSVG(piece.type, piece.color, piece.style) + `<div class="label">${piece.type}</div>`;
+      // Stagger along rail
+      const left = i*60 + (idx%2?30:0);
+      card.style.left = `${left % 960}px`;
+      hook.appendChild(card);
+      lane.el.appendChild(hook);
+      card.addEventListener('click', ()=>pick(piece, card));
+    }
+  });
+}
+
+function pick(piece, cardNode){
+  if(!running) return;
+  const need = needSet[piece.type];
+  let award = 0;
+  if(need){
+    if(piece.color === need.color){
+      award = filled[piece.type] ? 0 : 2;
+      if(!filled[piece.type]){
+        placeSlot(piece.type, cardNode.cloneNode(true));
+        filled[piece.type] = piece;
+      }
+    }else{
+      award = 1;
+    }
+  }else{
+    award = 0;
+  }
+  // If full set matched
+  if(filled.top && filled.bottom && filled.shoes){
+    award += 4;
+    // reset for next outfit
+    setTimeout(()=>{ newTheme() }, 200);
+  }
+  if(award>0){
+    pip(`+${award}`);
+    // scoreboard reflects after short delay
+    setTimeout(()=>{ score += award; refreshHUD() }, 420);
+  }
+}
+
+function placeSlot(type, node){
+  const slot = document.querySelector(`.slot[data-slot="${type}"]`);
+  slot.classList.add('filled');
+  slot.innerHTML = '';
+  // shrink svg
+  const svg = node.querySelector('.face');
+  if(svg){ svg.setAttribute('width','42'); svg.setAttribute('height','42'); }
+  node.style.boxShadow = 'none';
+  node.style.background = 'transparent';
+  node.style.width = 'auto';
+  node.style.height = 'auto';
+  node.style.position = 'static';
+  node.style.cursor = 'default';
+  node.querySelector('.label')?.remove();
+  slot.appendChild(node);
+}
+
+function pip(text){
+  const p = el('div',{className:'pip', textContent:text});
+  $('#pipBox').appendChild(p);
+  setTimeout(()=>p.remove(), 800);
+}
+
+/* ========= Game loop ========= */
+function startGame(){
+  if(running) return;
+  running = true;
+  score = 0;
+  timeLeft = 120;
+  refreshHUD();
+  newTheme();
+  spawnLaneItems();
+  countdownId = setInterval(()=>{
+    timeLeft--;
+    refreshHUD();
+    if(timeLeft<=0){
+      endGame();
+    }
+  }, 1000);
+}
+function endGame(){
+  running = false;
+  clearInterval(countdownId);
+  lastScore = score;
+  const earned = Math.max(0, Math.round(score/3));
+  coins += earned;
+  saveProgress();
+  refreshHUD();
+  alert(`Time. You scored ${score}. You earned ${earned} coins.`);
+}
+
+/* ========= Leaderboard ========= */
+function buildBoard(){
+  const body = $('#boardTable tbody'); body.innerHTML='';
+  leaderboard
+    .slice()
+    .sort((a,b)=>b.score-a.score)
+    .slice(0,20)
+    .forEach((r,i)=>{
+      const tr = el('tr', {});
+      tr.append(
+        el('td', {textContent: String(i+1)}),
+        el('td', {textContent: r.name}),
+        el('td', {textContent: String(r.score)}),
+        el('td', {textContent: r.date})
+      );
+      body.append(tr);
+    });
+}
+
+/* ========= Wiring ========= */
+lanes.forEach(l=>l.el = document.getElementById(l.id));
+buildAvatars();
+buildShop();
+refreshHUD();
+
+/* Start, Shop, Board */
+document.getElementById('startBtn').addEventListener('click', startGame);
+document.getElementById('shopBtn').addEventListener('click', ()=>{
+  buildShop();
+  document.getElementById('shopModal').classList.add('open');
+  document.getElementById('shopModal').setAttribute('aria-hidden','false');
+});
+document.getElementById('closeShop').addEventListener('click', ()=>{
+  document.getElementById('shopModal').classList.remove('open');
+  document.getElementById('shopModal').setAttribute('aria-hidden','true');
+});
+document.getElementById('boardBtn').addEventListener('click', ()=>{
+  buildBoard();
+  document.getElementById('boardModal').classList.add('open');
+  document.getElementById('boardModal').setAttribute('aria-hidden','false');
+});
+document.getElementById('closeBoard').addEventListener('click', ()=>{
+  document.getElementById('boardModal').classList.remove('open');
+  document.getElementById('boardModal').setAttribute('aria-hidden','true');
+});
+document.getElementById('clearBoardBtn').addEventListener('click', ()=>{
+  if(confirm('Clear leaderboard?')){
+    leaderboard = [];
+    saveProgress();
+    buildBoard();
+  }
+});
+document.getElementById('saveScoreBtn').addEventListener('click', ()=>{
+  const name = document.getElementById('nameInput').value.trim() || 'Player';
+  if(lastScore<=0){ alert('Play a round first.'); return; }
+  leaderboard.push({name, score:lastScore, date: new Date().toLocaleDateString()});
+  saveProgress(); buildBoard(); alert('Saved.');
+});
+
+/* ========= First target ========= */
+newTheme();
+</script>
+</body>
+</html>
